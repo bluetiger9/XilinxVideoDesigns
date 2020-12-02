@@ -1,0 +1,343 @@
+From e07559e3f6c726480df29584e860ba89c16ea49a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Sun, 2 Dec 2018 21:48:08 +0200
+Subject: [PATCH] ov5647.c: add 1920x1080 and 1920x1440 modes
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/media/i2c/ov5647.c | 278 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 276 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index 639a696e39a7..cce243349010 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -105,8 +105,15 @@ static struct regval_list sensor_oe_enable_regs[] = {
+ 	{0x3002, 0x00},
+ };
+ 
+-static struct regval_list ov5647_640x480[] = {
++static struct regval_list ov5647_enter_standby[] = {
+ 	{0x0100, 0x00},
++};
++
++static struct regval_list ov5647_exit_standby[] = {
++	{0x0100, 0x01},
++};
++
++static struct regval_list ov5647_640x480[] = {
+ 	{0x0103, 0x01},
+ 	{0x3034, 0x08},
+ 	{0x3035, 0x21},
+@@ -193,7 +200,183 @@ static struct regval_list ov5647_640x480[] = {
+ 	{0x4837, 0x24},
+ 	{0x4050, 0x6e},
+ 	{0x4051, 0x8f},
+-	{0x0100, 0x01},
++};
++
++static struct regval_list ov5647_1920x1080_overlay[] = {
++	{0x3034, 0x1A},
++	{0x3035, 0x21},
++	{0x3036, 0x62},
++	{0x303c, 0x11},
++	{0x3821, 0x00},
++	{0x3820, 0x00},
++	{0x380c, 0x09},
++	{0x380d, 0x70},
++	{0x380e, 0x04},
++	{0x380f, 0x50},
++	{0x3814, 0x11},
++	{0x3815, 0x11},
++	{0x3808, 0x07},
++	{0x3809, 0x80},
++	{0x380a, 0x04},
++	{0x380b, 0x38},
++	{0x3800, 0x01},
++	{0x3801, 0x5C},
++	{0x3802, 0x01},
++	{0x3803, 0xB2},
++	{0x3804, 0x08},
++	{0x3805, 0xE3},
++	{0x3806, 0x05},
++	{0x3807, 0xF1},
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3a08, 0x01},
++	{0x3a09, 0x4b},
++	{0x3a0a, 0x01},
++	{0x3a0b, 0x13},
++	{0x3a0d, 0x04},
++	{0x3a0e, 0x03},
++	{0x4001, 0x02},
++	{0x4004, 0x04},
++	{0x4000, 0x09},
++	{0x4837, 0x19},
++};
++
++static struct regval_list ov5647_1920x1440_overlay[] = {
++	{0x3034, 0x1A},
++	{0x3035, 0x21},
++	{0x3036, 0x66},
++	{0x303c, 0x11},
++	{0x3821, 0x02},
++	{0x3820, 0x00},
++	{0x380c, 0x09},
++	{0x380d, 0x70},
++	{0x380e, 0x06},
++	{0x380f, 0xAC},
++	{0x3814, 0x11},
++	{0x3815, 0x11},
++	{0x3808, 0x07},
++	{0x3809, 0x80},
++	{0x380a, 0x05},
++	{0x380b, 0xA0},
++	{0x3800, 0x01},
++	{0x3801, 0x5C},
++	{0x3802, 0x00},
++	{0x3803, 0xF8},    
++	{0x3804, 0x08},
++	{0x3805, 0xE3},
++	{0x3806, 0x06},
++	{0x3807, 0x9F},    
++	{0x3811, 0x04},
++	{0x3813, 0x02},
++	{0x3a08, 0x01},
++	{0x3a09, 0x4b},
++	{0x3a0a, 0x01},
++	{0x3a0b, 0x13},
++	{0x3a0d, 0x04},
++	{0x3a0e, 0x03},
++	{0x4001, 0x02},
++	{0x4004, 0x04},
++	{0x4000, 0x09},
++	{0x4837, 0x19},
++};
++
++static struct regval_list ov5647_640x480_binning_overlay[] = {
++    { 0x3820, 0x41 },
++    { 0x3821, 0x07 },
++    /*
++    { 0x5003, 0x09 },
++    { 0x5025, 0x11 },
++    { 0x504B, 0x30 },
++    { 0x3814, 0x31 },
++    { 0x3815, 0x31 },
++        
++    { 0x3800, 0x00 },
++    { 0x3801, 0x00 },
++    { 0x3802, 0x00 },
++    { 0x3803, 0x20 },
++    { 0x3804, 0x0A },
++    { 0x3805, 0x1F },
++    { 0x3806, 0x07 },
++    { 0x3807, 0x8F },
++
++    { 0x3811, 0x08 },
++    { 0x3813, 0x02 },
++
++    { 0x5006, 0xF0 },
++    { 0x5007, 0xC0 },
++    { 0x5018, 0x31 },
++    { 0x5019, 0x31 },
++    { 0x5046, 0x09 },
++    */
++    /***/
++    { 0x3800, 0x02 },
++    { 0x3801, 0x98 },
++    { 0x3802, 0x01 },
++    { 0x3803, 0xF0 },
++    
++    { 0x380c, 0x07 },
++    { 0x380d, 0xCC },
++    /*
++    { 0x3804, 0x07 },
++    { 0x3805, 0xA7 },
++    { 0x3806, 0x05 },
++    { 0x3807, 0xB3 },
++    */
++};
++
++static struct regval_list ov5647_1280x960_binning_overlay[] = {
++    //{0x3034, 0x1A},
++	//{0x3035, 0x21}, /* was 0x11 */
++	//{0x3036, 0x32},
++	//{0x303c, 0x11},
++	{0x3821, 0x07},
++	{0x3820, 0x41},
++	//{0x380c, 0x0B},
++	//{0x380d, 0x1C},
++	//{0x380e, 0x08}, /* was 0x07B0 */
++	//{0x380f, 0x08},
++	//{0x3814, 0x31},
++	//{0x3815, 0x31},
++	{0x3808, 0x05}, /* 1280 */
++	{0x3809, 0x00},
++	{0x380a, 0x03}, /* 960 */
++	{0x380b, 0xC0},
++	{0x3800, 0x00},
++	{0x3801, 0x00},  /* was 0x10 */
++	{0x3802, 0x00},
++	{0x3803, 0x00},  /* was 0x10 */
++	{0x3804, 0x0A},
++	{0x3805, 0x2F},
++	{0x3806, 0x07},
++	{0x3807, 0x93},
++/*  {0x3804, 0x0A},
++	{0x3805, 0x3F},
++	{0x3806, 0x07},
++	{0x3807, 0xA3},*/
++
++	{0x3811, 0x00},  /* was 0x10 */
++	{0x3813, 0x00},  /* was 0x02 */
++
++    { 0x380c, 0x0A },
++    { 0x380d, 0x70 },
++    { 0x380e, 0x07 },
++    { 0x380f, 0xB0 },
++
++	/*
++    {0x3a08, 0x01},
++	{0x3a09, 0x28},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0xf3},
++	{0x3a0d, 0x08},
++	{0x3a0e, 0x06},
++	{0x4001, 0x02},
++	{0x4004, 0x04},
++	{0x4000, 0x09},
++	{0x4837, 0x16},
++	{0x3501, 0x15},
++	{0x3502, 0x20},
++	{0x504B, 0x30},
++	{0x5003, 0x09},*/
+ };
+ 
+ static int ov5647_write(struct v4l2_subdev *sd, u16 reg, u8 val)
+@@ -316,6 +499,7 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 	int ret;
+ 	u8 resetval, rdval;
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++    struct ov5647 *ov5647 = to_state(sd);
+     
+     dev_dbg(&client->dev, "OV5647 sensor_init\n");
+ 
+@@ -325,6 +509,8 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 
+     dev_dbg(&client->dev, "OV5647 write def regs 640x480\n");
+ 
++	ret = ov5647_write_array(sd, ov5647_enter_standby, ARRAY_SIZE(ov5647_enter_standby));
++
+ 	ret = ov5647_write_array(sd, ov5647_640x480,
+ 					ARRAY_SIZE(ov5647_640x480));
+ 	if (ret < 0) {
+@@ -332,6 +518,39 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 		return ret;
+ 	}
+ 
++    if (ov5647->format.width == 1920) {
++        if (ov5647->format.height == 1080) {
++            dev_dbg(&client->dev, "OV5647: 1920x1080 mode\n");
++        	ret = ov5647_write_array(sd, ov5647_1920x1080_overlay, ARRAY_SIZE(ov5647_1920x1080_overlay));
++            if (ret < 0) {
++           		dev_err(&client->dev, "failed to write 1920x1080 registers \n");  
++            }
++
++        } else if (ov5647->format.height == 1440) {
++            dev_dbg(&client->dev, "OV5647: 1920x1440 mode\n");
++        	ret = ov5647_write_array(sd, ov5647_1920x1440_overlay, ARRAY_SIZE(ov5647_1920x1440_overlay));
++            if (ret < 0) {
++           		dev_err(&client->dev, "failed to write 1920x1440 registers\n");  
++            }
++        }
++
++    } else if (ov5647->format.width == 1280) {
++        dev_dbg(&client->dev, "OV5647: 1280x960 binning mode\n");
++        ret = ov5647_write_array(sd, ov5647_1280x960_binning_overlay, ARRAY_SIZE(ov5647_1280x960_binning_overlay));
++        if (ret < 0) {
++            dev_err(&client->dev, "failed to write 1280x960 registers\n");  
++        }
++
++    } else {
++        dev_dbg(&client->dev, "OV5647: 640x480 binning mode\n");
++       	ret = ov5647_write_array(sd, ov5647_640x480_binning_overlay, ARRAY_SIZE(ov5647_640x480_binning_overlay));
++        if (ret < 0) {
++            dev_err(&client->dev, "failed to write 640x4800 binning registers\n");
++        }
++    }
++
++	ret = ov5647_write_array(sd, ov5647_exit_standby, ARRAY_SIZE(ov5647_exit_standby));
++
+     dev_dbg(&client->dev, "OV5647 set virtual channel 0 \n");
+ 
+ 	ret = ov5647_set_virtual_channel(sd, 0);
+@@ -481,8 +700,63 @@ static int ov5647_enum_mbus_code(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
++static struct v4l2_mbus_framefmt
++*__ov5647_get_pad_format(struct ov5647 *ov5647,
++			struct v4l2_subdev_pad_config *cfg,
++			unsigned int pad, u32 which)
++{
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(&ov5647->sd, cfg, pad);
++
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &ov5647->format;
++
++	default:
++		return NULL;
++	}
++}
++
++static int ov5647_get_format(struct v4l2_subdev *subdev,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *fmt)
++{
++	struct ov5647 *ov5647 = to_state(subdev);
++
++	fmt->format = *__ov5647_get_pad_format(ov5647, cfg, fmt->pad, fmt->which);
++	return 0;
++}
++
++static int ov5647_set_format(struct v4l2_subdev *subdev,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *fmt)
++{
++    struct ov5647 *ov5647 = to_state(subdev);
++	struct v4l2_mbus_framefmt *__format;
++    struct i2c_client *client = v4l2_get_subdevdata(subdev);
++
++    dev_dbg(&client->dev, "set format: width=%d, height=%d\n", fmt->format.width, fmt->format.height);
++
++	__format = __ov5647_get_pad_format(ov5647, cfg, fmt->pad, fmt->which);
++	*__format = fmt->format;
++
++	__format->width = clamp_t(unsigned int, fmt->format.width,
++				  2, OV5647_WINDOW_WIDTH_DEF);
++    ov5647->width = __format->width;
++
++	__format->height = clamp_t(unsigned int, fmt->format.height,
++   				  2, OV5647_WINDOW_HEIGHT_DEF);
++    ov5647->height = __format->height;
++
++	fmt->format = *__format;
++	return 0;
++}
++
+ static const struct v4l2_subdev_pad_ops ov5647_subdev_pad_ops = {
+ 	.enum_mbus_code = ov5647_enum_mbus_code,
++	//.enum_frame_size = ov5647_enum_frame_size,
++	.get_fmt = ov5647_get_format,
++	.set_fmt = ov5647_set_format,
+ };
+ 
+ static const struct v4l2_subdev_ops ov5647_subdev_ops = {
+-- 
+2.17.1
+

@@ -1,0 +1,73 @@
+From 569271a7defe64de1252763b388cce8b6c9b565f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Thu, 25 Oct 2018 20:21:22 +0300
+Subject: [PATCH] ov5647.c: power / oen debug, port 0 & 1 (y) disable
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/media/i2c/ov5647.c | 46 +++++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index 0105e7dc5dc5..aaa341ea22cf 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -388,29 +388,29 @@ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+         */
+ 		//dev_dbg(&client->dev, "OV5647: 0x3000, 0x01"); msleep(50);
+         //ov5647_write(sd, 0x3000, 0x01);
+-		dev_dbg(&client->dev, "OV5647: 0x3000, 0x02"); msleep(50);
+-        ov5647_write(sd, 0x3000, 0x02);
+-		dev_dbg(&client->dev, "OV5647: 0x3000, 0x06"); msleep(50);
+-        ov5647_write(sd, 0x3000, 0x06);
+-		dev_dbg(&client->dev, "OV5647: 0x3000, 0x0e"); msleep(50);
+-        ov5647_write(sd, 0x3000, 0x0e);
+-
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x01"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x01);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x03"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x03);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x07"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x07);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x0f"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x0f);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x1f"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x1f);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x3f"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x3f);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0x7f"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0x7f);
+-		dev_dbg(&client->dev, "OV5647: 0x3001, 0xff"); msleep(50);
+-        ov5647_write(sd, 0x3001, 0xff);
++		//dev_dbg(&client->dev, "OV5647: 0x3000, 0x02"); msleep(50);
++        //ov5647_write(sd, 0x3000, 0x02);
++		//dev_dbg(&client->dev, "OV5647: 0x3000, 0x06"); msleep(50);
++        //ov5647_write(sd, 0x3000, 0x06);
++		//dev_dbg(&client->dev, "OV5647: 0x3000, 0x0e"); msleep(50);
++        //ov5647_write(sd, 0x3000, 0x0e);
++
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x01"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x01);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x03"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x03);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x07"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x07);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x0f"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x0f);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x1f"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x1f);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x3f"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x3f);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0x7f"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0x7f);
++		//dev_dbg(&client->dev, "OV5647: 0x3001, 0xff"); msleep(50);
++        //ov5647_write(sd, 0x3001, 0xff);
+ 
+ 		dev_dbg(&client->dev, "OV5647: 0x3002, 0x04"); msleep(50);
+         ov5647_write(sd, 0x3002, 0x04);
+-- 
+2.17.1
+

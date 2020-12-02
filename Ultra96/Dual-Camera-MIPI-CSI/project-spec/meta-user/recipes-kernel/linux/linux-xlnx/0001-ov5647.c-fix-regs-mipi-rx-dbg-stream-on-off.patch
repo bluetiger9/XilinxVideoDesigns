@@ -1,0 +1,164 @@
+From 55914a8b85c6d78a0d5bda4a859e7724bdb2584e Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Thu, 1 Nov 2018 20:59:38 +0200
+Subject: [PATCH] ov5647.c: fix regs; mipi-rx: dbg stream on/off
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/media/i2c/ov5647.c                    | 25 ++++++++-----------
+ .../media/platform/xilinx/xilinx-csi2rxss.c   |  3 +++
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index c613dff285a7..fe2663accdc3 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -100,9 +100,9 @@ static struct regval_list sensor_oe_disable_regs[] = {
+ };
+ 
+ static struct regval_list sensor_oe_enable_regs[] = {
+-	{0x3000, 0x0c}, // bits 2 and 3
+-	{0x3001, 0x1f}, // bits 0, 1, 2, 3 and 4
+-	{0x3002, 0xe4},
++	{0x3000, 0x00}, 
++	{0x3001, 0x00}, // not needed
++	{0x3002, 0x00},
+ };
+ 
+ static struct regval_list ov5647_640x480[] = {
+@@ -128,7 +128,7 @@ static struct regval_list ov5647_640x480[] = {
+ 	{0x3001, 0x00},
+ 	{0x3002, 0x00},
+ 	{0x3016, 0x08},
+-	{0x3017, 0xe0},
++	{0x3017, 0x10}, /* was 0xe0 */
+ 	{0x3018, 0x44},
+ 	{0x301c, 0xf8},
+ 	{0x301d, 0xf0},
+@@ -201,8 +201,11 @@ static int ov5647_write(struct v4l2_subdev *sd, u16 reg, u8 val)
+ 	int ret;
+ 	unsigned char data[3] = { reg >> 8, reg & 0xff, val};
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++    
++    dev_dbg(&client->dev, "%s: i2c write reg: %x val: %x\n",
++			__func__, reg, val);
+ 
+-	ret = i2c_master_send(client, data, 3);
++    ret = i2c_master_send(client, data, 3);
+ 	if (ret < 0)
+ 		dev_dbg(&client->dev, "%s: i2c write error, reg: %x\n",
+ 				__func__, reg);
+@@ -228,6 +231,8 @@ static int ov5647_read(struct v4l2_subdev *sd, u16 reg, u8 *val)
+ 		dev_dbg(&client->dev, "%s: i2c read error, reg: %x\n",
+ 				__func__, reg);
+ 
++    dev_dbg(&client->dev, "%s: i2c read reg: %x val: %x\n",
++			__func__, reg, ret);
+ 	return ret;
+ }
+ 
+@@ -262,7 +267,7 @@ static int ov5647_stream_on(struct v4l2_subdev *sd)
+ {
+ 	int ret;
+ 
+-	ret = ov5647_write(sd, OV5647_REG_MIPI_CTRL00, MIPI_CTRL00_BUS_IDLE);
++	ret = ov5647_write(sd, OV5647_REG_MIPI_CTRL00, 0x34 /*MIPI_CTRL00_BUS_IDLE*/);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -313,14 +318,12 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+     
+     dev_dbg(&client->dev, "OV5647 sensor_init\n");
+-    msleep(100);
+ 
+ 	ret = ov5647_read(sd, OV5647_SW_STANDBY, &rdval);
+ 	if (ret < 0)
+ 		return ret;
+ 
+     dev_dbg(&client->dev, "OV5647 write def regs 640x480\n");
+-    msleep(100);
+ 
+ 	ret = ov5647_write_array(sd, ov5647_640x480,
+ 					ARRAY_SIZE(ov5647_640x480));
+@@ -330,14 +333,12 @@ static int __sensor_init(struct v4l2_subdev *sd)
+ 	}
+ 
+     dev_dbg(&client->dev, "OV5647 set virtual channel 0 \n");
+-    msleep(100);
+ 
+ 	ret = ov5647_set_virtual_channel(sd, 0);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	dev_dbg(&client->dev, "standby check\n");
+-	msleep(100);
+ 
+ 	ret = ov5647_read(sd, OV5647_SW_STANDBY, &resetval);
+ 	if (ret < 0)
+@@ -366,7 +367,6 @@ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+ 
+ 	if (on && !ov5647->power_count)	{
+ 		dev_dbg(&client->dev, "OV5647 power on\n");
+-        msleep(100);
+ 
+ 		ret = clk_prepare_enable(ov5647->xclk);
+ 		if (ret < 0) {
+@@ -375,7 +375,6 @@ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+ 		}
+ 
+ 		dev_dbg(&client->dev, "OV5647 clock prepared. Write oe enable regs\n");
+-        msleep(100);
+ 
+ 		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
+ 				ARRAY_SIZE(sensor_oe_enable_regs));
+@@ -388,7 +387,6 @@ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+ 		}
+ 
+ 		dev_dbg(&client->dev, "OV5647 sensor init...\n");
+-        msleep(100);
+ 
+ 		ret = __sensor_init(sd);
+ 		if (ret < 0) {
+@@ -399,7 +397,6 @@ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+ 		}
+ 	} else if (!on && ov5647->power_count == 1) {
+ 		dev_dbg(&client->dev, "OV5647 power off\n");
+-        msleep(100);        
+ 
+ 		ret = ov5647_write_array(sd, sensor_oe_disable_regs,
+ 				ARRAY_SIZE(sensor_oe_disable_regs));
+diff --git a/drivers/media/platform/xilinx/xilinx-csi2rxss.c b/drivers/media/platform/xilinx/xilinx-csi2rxss.c
+index 3e8f535b7e41..5add61acbb41 100644
+--- a/drivers/media/platform/xilinx/xilinx-csi2rxss.c
++++ b/drivers/media/platform/xilinx/xilinx-csi2rxss.c
+@@ -1088,6 +1088,7 @@ static int xcsi2rxss_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	int ret = 0;
+ 	struct xcsi2rxss_state *xcsi2rxss = to_xcsi2rxssstate(sd);
++    struct xcsi2rxss_core *core = &xcsi2rxss->core;
+ 
+ 	mutex_lock(&xcsi2rxss->lock);
+ 
+@@ -1097,6 +1098,7 @@ static int xcsi2rxss_s_stream(struct v4l2_subdev *sd, int enable)
+ 	}
+ 
+ 	if (enable) {
++    	dev_dbg(core->dev, "Stream On\n");
+ 		if (!xcsi2rxss->streaming) {
+ 			/* reset the event counters */
+ 			xcsi2rxss_reset_event_counters(xcsi2rxss);
+@@ -1106,6 +1108,7 @@ static int xcsi2rxss_s_stream(struct v4l2_subdev *sd, int enable)
+ 				xcsi2rxss->streaming = true;
+ 		}
+ 	} else {
++    	dev_dbg(core->dev, "Stream Off\n");
+ 		if (xcsi2rxss->streaming) {
+ 			xcsi2rxss_stop_stream(xcsi2rxss);
+ 			xcsi2rxss->streaming = false;
+-- 
+2.17.1
+

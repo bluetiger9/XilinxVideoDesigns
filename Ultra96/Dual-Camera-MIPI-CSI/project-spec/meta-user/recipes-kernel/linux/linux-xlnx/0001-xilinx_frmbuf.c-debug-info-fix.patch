@@ -1,0 +1,61 @@
+From 3320d7a51c0b868ee5b08eafe3573325cd2f0bb7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Sat, 24 Nov 2018 20:36:52 +0200
+Subject: [PATCH] xilinx_frmbuf.c: debug info - fix
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/dma/xilinx/xilinx_frmbuf.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/dma/xilinx/xilinx_frmbuf.c b/drivers/dma/xilinx/xilinx_frmbuf.c
+index d4d6b90034aa..dfe21a43c0d5 100644
+--- a/drivers/dma/xilinx/xilinx_frmbuf.c
++++ b/drivers/dma/xilinx/xilinx_frmbuf.c
+@@ -952,9 +952,10 @@ static void xilinx_frmbuf_start(struct xilinx_frmbuf_chan *chan)
+  */
+ static void xilinx_frmbuf_complete_descriptor(struct xilinx_frmbuf_chan *chan)
+ {
+-    dev_dbg(chan->xdev->dev, "Complete\n");
+ 	struct xilinx_frmbuf_tx_descriptor *desc = chan->active_desc;
+ 
++    dev_dbg(chan->xdev->dev, "Complete\n");
++
+ 	/*
+ 	 * In case of frame buffer write, read the fid register
+ 	 * and associate it with descriptor
+@@ -973,8 +974,8 @@ static void xilinx_frmbuf_complete_descriptor(struct xilinx_frmbuf_chan *chan)
+  */
+ static void xilinx_frmbuf_start_transfer(struct xilinx_frmbuf_chan *chan)
+ {
+-    dev_dbg(chan->xdev->dev, "start transfer\n");
+ 	struct xilinx_frmbuf_tx_descriptor *desc;
++    dev_dbg(chan->xdev->dev, "start transfer\n");
+ 
+ 	if (!chan->idle)
+ 		return;
+@@ -1025,8 +1026,8 @@ static void xilinx_frmbuf_start_transfer(struct xilinx_frmbuf_chan *chan)
+ static void xilinx_frmbuf_issue_pending(struct dma_chan *dchan)
+ {
+ 	struct xilinx_frmbuf_chan *chan = to_xilinx_chan(dchan);
+-    dev_dbg(chan->xdev->dev, "issue pending\n");
+ 	unsigned long flags;
++    dev_dbg(chan->xdev->dev, "issue pending\n");
+ 
+ 	spin_lock_irqsave(&chan->lock, flags);
+ 	xilinx_frmbuf_start_transfer(chan);
+@@ -1039,7 +1040,7 @@ static void xilinx_frmbuf_issue_pending(struct dma_chan *dchan)
+  */
+ static void xilinx_frmbuf_reset(struct xilinx_frmbuf_chan *chan)
+ {
+-    dev_dbg(chan->device->dev, "reset\n");
++    dev_dbg(chan->xdev->dev, "reset\n");
+ 	/* reset ip */
+ 	gpiod_set_value(chan->xdev->rst_gpio, 1);
+ 	udelay(1);
+-- 
+2.17.1
+

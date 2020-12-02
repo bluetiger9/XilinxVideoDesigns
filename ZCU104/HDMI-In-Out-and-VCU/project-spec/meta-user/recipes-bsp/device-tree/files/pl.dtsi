@@ -1,0 +1,44 @@
+#define PLATFORM_ZCU104
+#define CONFIG_USE_HDMI_RX
+#define CONFIG_USE_HDMI_TX
+#define DESIGN_RV_SS
+
+#undef PLATFORM_ZCU102
+#undef CONFIG_USE_CSI
+#undef CONFIG_USE_TPG
+#undef CONFIG_USE_SDSOC
+
+/include/ "vcap-hdmi.dtsi"
+/include/ "drm-hdmi.dtsi"
+
+/include/ "drm-hdmi0222222.dtsi"
+
+&amba_pl {
+
+	axi_stream_clk: axi_stream_clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <300000000>;
+	};
+
+	axi_lite_clk: axi_lite_clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <50000000>;
+	};
+
+
+	hdmi_dru_clk: clock-generator-hdmi-dru-clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <156250000>;
+	};
+
+};
+
+&hdmi_in_out_vid_phy_controller_0 {
+   	compatible = "xlnx,vid-phy-controller-2.2";
+};
+
+
+

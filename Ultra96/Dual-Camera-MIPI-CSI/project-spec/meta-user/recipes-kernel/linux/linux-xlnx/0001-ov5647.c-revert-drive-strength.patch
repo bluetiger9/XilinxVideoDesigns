@@ -1,0 +1,29 @@
+From 4a57a7f31f59aa3624cdb96e6d72e572eaf09a24 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Sat, 3 Nov 2018 10:48:35 +0200
+Subject: [PATCH] ov5647.c: revert drive strength
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/media/i2c/ov5647.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index fe2663accdc3..639a696e39a7 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -128,7 +128,7 @@ static struct regval_list ov5647_640x480[] = {
+ 	{0x3001, 0x00},
+ 	{0x3002, 0x00},
+ 	{0x3016, 0x08},
+-	{0x3017, 0x10}, /* was 0xe0 */
++	{0x3017, 0xe0}, /* was 0xe0 */
+ 	{0x3018, 0x44},
+ 	{0x301c, 0xf8},
+ 	{0x301d, 0xf0},
+-- 
+2.17.1
+

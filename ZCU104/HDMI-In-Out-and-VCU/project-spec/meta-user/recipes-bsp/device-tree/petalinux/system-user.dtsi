@@ -1,0 +1,233 @@
+/include/ "system-conf.dtsi"
+/ {
+	refhdmi: refhdmi {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <40000000>;
+	};
+	
+	hdmi_dru_clk: clock-generator-hdmi-dru-clk {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <156250000>;
+	};
+};
+
+#include <dt-bindings/media/xilinx-vip.h>
+
+&amba_pl {
+	vcap_hdmi {
+		compatible = "xlnx,video";
+		dmas = <&hdmi_in_out_hdmi_input_v_frmbuf_wr_0 0>;
+		dma-names = "port0";
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				direction = "input";
+				vcap_hdmi_in: endpoint {
+					remote-endpoint = <&hdmi_in_out_hdmi_input_v_proc_ss_scaler_out>;
+				};
+			};
+		};
+	};
+};
+
+&hdmi_in_out_hdmi_input_v_hdmi_rx_ss_0 {
+	phys = <&vphy_lane0 0 1 1 0>, <&vphy_lane1 0 1 1 0>, <&vphy_lane2 0 1 1 0>;
+	phy-names = "hdmi-phy0", "hdmi-phy1", "hdmi-phy2";
+	xlnx,input-pixels-per-clock = <2>;
+	xlnx,max-bits-per-component = <8>;
+	xlnx,edid-ram-size = <0x100>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+
+			xlnx,video-format = <XVIP_VF_RBG>;
+			xlnx,video-width = <8>;
+
+			hdmi_in_out_hdmi_input_v_hdmi_rx_ss_0_out: endpoint {
+				remote-endpoint = <&hdmi_in_out_hdmi_input_v_proc_ss_scaler_in>;
+			};
+		};
+	};
+};
+
+&hdmi_in_out_hdmi_input_v_proc_ss_scaler {
+	reset-gpios = <&gpio 87 1>;
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+
+			xlnx,video-format = <XVIP_VF_RBG>;
+			xlnx,video-width = <8>;
+
+			hdmi_in_out_hdmi_input_v_proc_ss_scaler_in: endpoint {
+				remote-endpoint = <&hdmi_in_out_hdmi_input_v_hdmi_rx_ss_0_out>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+
+			xlnx,video-format = <XVIP_VF_YUV_422>;
+			xlnx,video-width = <8>;
+
+			hdmi_in_out_hdmi_input_v_proc_ss_scaler_out: endpoint {
+				remote-endpoint = <&vcap_hdmi_in>;
+			};
+		};
+	};
+};
+
+&hdmi_in_out_hdmi_input_v_frmbuf_wr_0 {
+	xlnx,vid-formats = "yuyv", "uyvy", "y8", "rgb888";
+
+	reset-gpios = <&gpio 88 1>;
+	xlnx,dma-addr-width = <32>;
+	xlnx,pixels-per-clock = <2>;
+};
+	
+&hdmi_in_out_vid_phy_controller_0 {
+   	compatible = "xlnx,vid-phy-controller-2.2";
+};
+
+
+/* HDMI TX */
+
+&hdmi_in_out_axi_iic_0 {	
+	/* idt8t49n241 i2c clock generator */
+	idt8t49n24x: clock-generator@6c {
+		status = "okay";
+		compatible = "idt,idt8t49n24x";
+		#clock-cells = <1>;
+		reg = <0x6c>;
+
+		/* input clock(s); the XTAL is hard-wired on the ZCU104 board */
+		clocks = <&refhdmi>;
+		clock-names = "input-xtal";
+
+		settings = [
+			09 50 00 60 67 c5 6c 01 03 00 31 00 01 40 00 01 40 00 74 04 00 74 04 77 6d 00 00 00 00 00 00 ff
+			ff ff ff 01 3f 00 2e 00 0d 00 00 00 01 00 00 d0 08 00 00 00 00 00 08 00 00 00 00 00 00 44 44 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 e9 0a 2b 20 00 00 00 0f 00 00 00 0e 00 00 0e 00 00 00 27 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			e3 00 08 01 00 00 00 00 00 00 00 00 00 b0 00 00 00 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			00 00 00 00 85 00 00 9c 01 d4 02 71 07 00 00 00 00 83 00 10 02 08 8c
+		];
+	};
+	
+	/* DP159 exposes a virtual CCF clock. Upon .set_rate(), it adapts its retiming/driving behaviour */
+	dp159: hdmi-retimer@5e {
+		status = "okay";
+		compatible = "ti,dp159";
+		reg = <0x5e>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		#clock-cells = <0>;
+	};
+};
+
+
+&hdmi_in_out_hdmi_output_v_mix_0 {
+	reset-gpios = <&gpio 83 1>;
+		
+	xlnx,dma-addr-width = <32>;
+	xlnx,bpc = <8>;
+	xlnx,ppc = <2>;
+	xlnx,num-layers = <5>;
+
+	crtc_mixer_port: port@0 {
+		reg = <0>;
+		mixer_crtc: endpoint {
+			remote-endpoint = <&hdmi_encoder>;
+		};
+	};
+	mixer_master_layer: layer_0 {
+		xlnx,layer-id = <0>;
+		xlnx,vformat = "BG24";
+		xlnx,layer-max-width = <3840>;
+		xlnx,layer-max-height = <2160>;
+	};
+	mixer_overlay_1: layer_1 {
+		xlnx,layer-id = <1>;
+		xlnx,vformat = "YUYV";
+		xlnx,layer-alpha;
+		xlnx,layer-max-width = <3840>;
+	};
+	mixer_overlay_2: layer_2 {
+		xlnx,layer-id = <2>;
+		xlnx,vformat = "YUYV";
+		xlnx,layer-alpha;
+		xlnx,layer-max-width = <3840>;
+	};
+	mixer_overlay_3: layer_3 {
+		xlnx,layer-id = <3>;
+		xlnx,vformat = "UYVY";
+		xlnx,layer-alpha;
+		xlnx,layer-max-width = <3840>;
+	};
+	mixer_overlay_4: layer_4 {
+		xlnx,layer-id = <4>;
+		xlnx,vformat = "AR24";
+		xlnx,layer-alpha;
+		xlnx,layer-max-width = <3840>;
+		xlnx,layer-primary;
+	};
+	mixer_logo: logo {
+		xlnx,layer-id = <5>;
+		xlnx,logo-height = <64>;
+		xlnx,logo-width = <64>;
+	};
+};
+
+&hdmi_in_out_hdmi_output_v_hdmi_tx_ss_0 {
+	reg-names = "hdmi-txss";
+	phys = <&vphy_lane0 0 1 1 1>, <&vphy_lane1 0 1 1 1>, <&vphy_lane2 0 1 1 1>;
+	phy-names = "hdmi-phy0", "hdmi-phy1", "hdmi-phy2";
+
+	xlnx,input-pixels-per-clock = <2>;
+	xlnx,max-bits-per-component = <8>;
+	xlnx,output-fmt = "rgb";
+
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+		encoder_hdmi_port: port@0 {
+			reg = <0>;
+			hdmi_encoder: endpoint {
+				remote-endpoint = <&mixer_crtc>;
+			};
+		};
+	};
+};

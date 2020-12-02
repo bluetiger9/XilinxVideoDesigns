@@ -1,0 +1,73 @@
+From 103f042244a1ac91cdfad427a14a634145e01f53 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Thu, 25 Oct 2018 18:48:20 +0300
+Subject: [PATCH] ov5647.c: power / oen debug
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/media/i2c/ov5647.c | 46 ++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 44 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+index 87bfe38826a6..1652f842425c 100644
+--- a/drivers/media/i2c/ov5647.c
++++ b/drivers/media/i2c/ov5647.c
+@@ -377,8 +377,50 @@ static int ov5647_sensor_power(struct v4l2_subdev *sd, int on)
+ 		dev_dbg(&client->dev, "OV5647 clock prepared. Write oe enable regs\n");
+         msleep(100);
+ 
+-		ret = ov5647_write_array(sd, sensor_oe_enable_regs,
+-				ARRAY_SIZE(sensor_oe_enable_regs));
++		//ret = ov5647_write_array(sd, sensor_oe_enable_regs,
++		//		ARRAY_SIZE(sensor_oe_enable_regs));
++        /*
++        static struct regval_list sensor_oe_enable_regs[] = {
++	        {0x3000, 0x0f},
++	        {0x3001, 0xff},
++	        {0x3002, 0xe4},
++        };
++        */
++		dev_dbg(&client->dev, "OV5647: 0x3000, 0x01"); msleep(50);
++        ov5647_write(sd, 0x3000, 0x01);
++		dev_dbg(&client->dev, "OV5647: 0x3000, 0x03"); msleep(50);
++        ov5647_write(sd, 0x3000, 0x03);
++		dev_dbg(&client->dev, "OV5647: 0x3000, 0x07"); msleep(50);
++        ov5647_write(sd, 0x3000, 0x07);
++		dev_dbg(&client->dev, "OV5647: 0x3000, 0x0f"); msleep(50);
++        ov5647_write(sd, 0x3000, 0x0f);
++
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x01"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x01);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x03"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x03);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x07"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x07);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x0f"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x0f);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x1f"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x1f);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x3f"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x3f);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0x7f"); msleep(50);
++        ov5647_write(sd, 0x3001, 0x7f);
++		dev_dbg(&client->dev, "OV5647: 0x3001, 0xff"); msleep(50);
++        ov5647_write(sd, 0x3001, 0xff);
++
++		dev_dbg(&client->dev, "OV5647: 0x3002, 0x04"); msleep(50);
++        ov5647_write(sd, 0x3002, 0x04);
++		dev_dbg(&client->dev, "OV5647: 0x3002, 0x24"); msleep(50);
++        ov5647_write(sd, 0x3002, 0x24);
++		dev_dbg(&client->dev, "OV5647: 0x3002, 0x64"); msleep(50);
++        ov5647_write(sd, 0x3002, 0x64);
++		dev_dbg(&client->dev, "OV5647: 0x3002, 0xe4"); msleep(50);
++        ret = ov5647_write(sd, 0x3002, 0xe4);
++
+ 		if (ret < 0) {
+ 			clk_disable_unprepare(ov5647->xclk);
+ 			dev_err(&client->dev,
+-- 
+2.17.1
+

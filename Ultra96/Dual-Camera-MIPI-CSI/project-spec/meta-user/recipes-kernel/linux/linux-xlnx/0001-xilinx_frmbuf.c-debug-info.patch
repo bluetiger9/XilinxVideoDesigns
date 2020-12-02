@@ -1,0 +1,129 @@
+From 2adfbbf98989ef1ccc8c0f9374cef26d52d07882 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Attila=20T=C5=91k=C3=A9s?= <tokes_atti@yahoo.com>
+Date: Mon, 12 Nov 2018 19:30:56 +0200
+Subject: [PATCH] xilinx_frmbuf.c: debug info
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Attila Tőkés <tokes_atti@yahoo.com>
+---
+ drivers/dma/xilinx/xilinx_frmbuf.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/dma/xilinx/xilinx_frmbuf.c b/drivers/dma/xilinx/xilinx_frmbuf.c
+index b7b86d79ff28..d4d6b90034aa 100644
+--- a/drivers/dma/xilinx/xilinx_frmbuf.c
++++ b/drivers/dma/xilinx/xilinx_frmbuf.c
+@@ -645,6 +645,8 @@ static void xilinx_xdma_set_config(struct dma_chan *chan, u32 fourcc, u32 type)
+ 	}
+ 	mutex_unlock(&frmbuf_chan_list_lock);
+ 
++    dev_dbg(chan->device->dev, "xilinx_xdma_set_config\n");
++
+ 	if (!found_xchan) {
+ 		dev_dbg(chan->device->dev,
+ 			"dma chan not a Video Framebuffer channel instance\n");
+@@ -934,6 +936,7 @@ static void xilinx_frmbuf_halt(struct xilinx_frmbuf_chan *chan)
+  */
+ static void xilinx_frmbuf_start(struct xilinx_frmbuf_chan *chan)
+ {
++    dev_dbg(chan->xdev->dev, "Start\n");
+ 	frmbuf_set(chan, XILINX_FRMBUF_CTRL_OFFSET,
+ 		   XILINX_FRMBUF_CTRL_AP_START |
+ 		   XILINX_FRMBUF_CTRL_AUTO_RESTART);
+@@ -949,6 +952,7 @@ static void xilinx_frmbuf_start(struct xilinx_frmbuf_chan *chan)
+  */
+ static void xilinx_frmbuf_complete_descriptor(struct xilinx_frmbuf_chan *chan)
+ {
++    dev_dbg(chan->xdev->dev, "Complete\n");
+ 	struct xilinx_frmbuf_tx_descriptor *desc = chan->active_desc;
+ 
+ 	/*
+@@ -969,6 +973,7 @@ static void xilinx_frmbuf_complete_descriptor(struct xilinx_frmbuf_chan *chan)
+  */
+ static void xilinx_frmbuf_start_transfer(struct xilinx_frmbuf_chan *chan)
+ {
++    dev_dbg(chan->xdev->dev, "start transfer\n");
+ 	struct xilinx_frmbuf_tx_descriptor *desc;
+ 
+ 	if (!chan->idle)
+@@ -1020,6 +1025,7 @@ static void xilinx_frmbuf_start_transfer(struct xilinx_frmbuf_chan *chan)
+ static void xilinx_frmbuf_issue_pending(struct dma_chan *dchan)
+ {
+ 	struct xilinx_frmbuf_chan *chan = to_xilinx_chan(dchan);
++    dev_dbg(chan->xdev->dev, "issue pending\n");
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&chan->lock, flags);
+@@ -1033,6 +1039,7 @@ static void xilinx_frmbuf_issue_pending(struct dma_chan *dchan)
+  */
+ static void xilinx_frmbuf_reset(struct xilinx_frmbuf_chan *chan)
+ {
++    dev_dbg(chan->device->dev, "reset\n");
+ 	/* reset ip */
+ 	gpiod_set_value(chan->xdev->rst_gpio, 1);
+ 	udelay(1);
+@@ -1045,6 +1052,7 @@ static void xilinx_frmbuf_reset(struct xilinx_frmbuf_chan *chan)
+  */
+ static void xilinx_frmbuf_chan_reset(struct xilinx_frmbuf_chan *chan)
+ {
++    dev_dbg(chan->xdev->dev, "channel reset\n");
+ 	xilinx_frmbuf_reset(chan);
+ 	frmbuf_write(chan, XILINX_FRMBUF_IE_OFFSET, XILINX_FRMBUF_IE_AP_READY);
+ 	frmbuf_write(chan, XILINX_FRMBUF_GIE_OFFSET, XILINX_FRMBUF_GIE_EN);
+@@ -1061,6 +1069,7 @@ static irqreturn_t xilinx_frmbuf_irq_handler(int irq, void *data)
+ {
+ 	struct xilinx_frmbuf_chan *chan = data;
+ 	u32 status;
++    dev_dbg(chan->xdev->dev, "irq\n");
+ 
+ 	status = frmbuf_read(chan, XILINX_FRMBUF_ISR_OFFSET);
+ 	if (!(status & XILINX_FRMBUF_ISR_ALL_IRQ_MASK))
+@@ -1093,6 +1102,8 @@ static dma_cookie_t xilinx_frmbuf_tx_submit(struct dma_async_tx_descriptor *tx)
+ 	dma_cookie_t cookie;
+ 	unsigned long flags;
+ 
++    dev_dbg(chan->xdev->dev, "Tx submit\n");
++
+ 	spin_lock_irqsave(&chan->lock, flags);
+ 	cookie = dma_cookie_assign(tx);
+ 	list_add_tail(&desc->node, &chan->pending_list);
+@@ -1119,6 +1130,8 @@ xilinx_frmbuf_dma_prep_interleaved(struct dma_chan *dchan,
+ 	struct xilinx_frmbuf_tx_descriptor *desc;
+ 	struct xilinx_frmbuf_desc_hw *hw;
+ 
++    dev_dbg(chan->xdev->dev, "xilinx_frmbuf_dma_prep_interleaved");
++
+ 	if (chan->direction != xt->dir || !chan->vid_fmt)
+ 		goto error;
+ 
+@@ -1179,6 +1192,7 @@ xilinx_frmbuf_dma_prep_interleaved(struct dma_chan *dchan,
+ static int xilinx_frmbuf_terminate_all(struct dma_chan *dchan)
+ {
+ 	struct xilinx_frmbuf_chan *chan = to_xilinx_chan(dchan);
++    dev_dbg(chan->xdev->dev, "xilinx_frmbuf_terminate_all");
+ 
+ 	xilinx_frmbuf_halt(chan);
+ 	xilinx_frmbuf_free_descriptors(chan);
+@@ -1217,7 +1231,7 @@ static int xilinx_frmbuf_terminate_all(struct dma_chan *dchan)
+ static void xilinx_frmbuf_synchronize(struct dma_chan *dchan)
+ {
+ 	struct xilinx_frmbuf_chan *chan = to_xilinx_chan(dchan);
+-
++    dev_dbg(chan->xdev->dev, "xilinx_frmbuf_sync");
+ 	tasklet_kill(&chan->tasklet);
+ }
+ 
+@@ -1231,6 +1245,8 @@ static void xilinx_frmbuf_synchronize(struct dma_chan *dchan)
+  */
+ static void xilinx_frmbuf_chan_remove(struct xilinx_frmbuf_chan *chan)
+ {
++    dev_dbg(chan->xdev->dev, "chan remove\n");
++
+ 	/* Disable all interrupts */
+ 	frmbuf_clr(chan, XILINX_FRMBUF_IE_OFFSET,
+ 		   XILINX_FRMBUF_ISR_ALL_IRQ_MASK);
+-- 
+2.17.1
+
